@@ -1089,6 +1089,8 @@ class DatetimeLikeArrayMixin(  # type: ignore[misc]
             # e.g. TestTimedelta64ArithmeticUnsorted::test_timedelta
             # Day is unambiguously 24h
             return self.freq
+        elif lib.is_np_dtype(self.dtype, "M") and isinstance(other, Timestamp):
+            return self.freq
 
         return None
 

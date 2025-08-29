@@ -1356,3 +1356,40 @@ def test_from_pandas_array(dtype):
     result = idx_cls(arr)
     expected = idx_cls(data)
     tm.assert_index_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    "dti, ts",
+    [
+        (
+            pd.date_range("2021-01-01", periods=5, freq="D"),
+            Timestamp("2019-01-03"),
+        ),
+        (
+            pd.date_range("2020-02-10 10:00", periods=5, freq="h"),
+            Timestamp("2020-02-10 08:00"),
+        ),
+        (
+            pd.date_range("2022-01-01", periods=5, freq="D"),
+            Timestamp("2020-01-01"),
+        ),
+        (
+            pd.date_range("2018-01-01", periods=5, freq="D"),
+            Timestamp("2019-01-01"),
+        ),
+    ],
+)
+@pytest.mark.parametrize("periods", [1, -2, 0])
+def test_shift_after_dti_sub_timestamp_various_inputs(dti, ts, periods):
+    # https://github.com/pandas-dev/pandas/issues/62094
+    ind = dti - ts
+
+    assert ind.freq is not None
+    assert ind.freq == dti.freq
+
+    result = ind.shift(periods)
+
+    offset = pd.Timedelta(periods, unit=ind.freq.name)
+    expected = ind + offset
+
+    tm.assert_index_equal(result, expected)
